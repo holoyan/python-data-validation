@@ -127,7 +127,7 @@ class Validator:
             return [method, []]
         return [method, parsed[0].split(',')]
 
-    def should_stop(self, attribute):
+    def _should_stop(self, attribute):
         return True if self._current_rule in self._implicit_rules and attribute in self._failed_rules else False
 
     @property
@@ -139,7 +139,7 @@ class Validator:
             for rule in rules:
                 self._validate_attribute(attribute, rule)
 
-                if self.should_stop(attribute):
+                if self._should_stop(attribute):
                     break
         return len(self._failed_rules) == 0
 
