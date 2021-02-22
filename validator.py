@@ -110,7 +110,8 @@ class Validator:
         if callable(rule):
             callback = ClosureValidationRule(rule)
             if not callback.passes(attribute, value):
-                return self._add_message(attribute, message=callback.message)
+                self._add_message(attribute, message=callback.message)
+            return
 
         rule_suffix, param = self._parse_rules(rule)
 
