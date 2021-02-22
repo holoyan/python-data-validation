@@ -1,4 +1,5 @@
 import pyNet.validation.helpers as helper
+from pyNet.validation.closureValidationRule import ClosureValidationRule
 
 
 class Validator:
@@ -104,20 +105,27 @@ class Validator:
 
     def _validate_attribute(self, attribute, rule):
         self._current_rule = rule
+        value = self.get_value(attribute)
+
+        if callable(rule):
+            callback = ClosureValidationRule(rule)
+            if not callback.passes(attribute, value):
+                return self._add_message(attribute, message=callback.message)
 
         rule_suffix, param = self._parse_rules(rule)
-        value = self.get_value(attribute)
 
         method = getattr(self, '_validate_' + rule_suffix)
         if not method(attribute, value, *param):
-            self._add_message(attribute, rule_suffix, param)
+            self._add_message(attribute, rule_suffix)
 
-    def _add_message(self, attribute, rule_suffix, params):
+    def _add_message(self, attribute, rule_suffix=None, message=None):
         if attribute not in self._failed_rules:
             self._failed_rules[attribute] = []
-        self._failed_rules[attribute].append({
-            rule_suffix: 'validation.{} must be {} '.format(attribute, rule_suffix) + ', '.join(params)
-        })
+
+        if message:
+            self._failed_rules[attribute].append(message)
+        else:
+            self._failed_rules[attribute].append('validation.{}'.format(rule_suffix))
 
     def _parse_rules(self, rules: str):
 
@@ -128,6 +136,13 @@ class Validator:
         return [method, parsed[0].split(',')]
 
     def _should_stop(self, attribute):
+        '''
+        In case the attribute has any rule that indicates that the field is required
+        and that rule already failed then we should stop validation at this point
+        as now there is no point in calling other rules with this field empty.
+        :param attribute:
+        :return: bool
+        '''
         return True if self._current_rule in self._implicit_rules and attribute in self._failed_rules else False
 
     @property
