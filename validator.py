@@ -1,6 +1,5 @@
-import pyNet.validation.helpers as helper
-from pyNet.validation.closureValidationRule import ClosureValidationRule
-from pyNet.validation.validationException import ValidationException
+import helpers as helper
+from closureValidationRule import ClosureValidationRule
 
 
 class Validator:

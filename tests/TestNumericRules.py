@@ -1,5 +1,5 @@
 import unittest
-from pyNet.validation.validator import Validator
+from validator import Validator
 import decimal
 import fractions
 
