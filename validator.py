@@ -1,5 +1,6 @@
 import pyNet.validation.helpers as helper
 from pyNet.validation.closureValidationRule import ClosureValidationRule
+from pyNet.validation.validationException import ValidationException
 
 
 class Validator:
@@ -36,7 +37,7 @@ class Validator:
         self.data = data
         self.initial_rules = rules
         self.rules = self.explode_rules(rules)
-        self.messages = messages
+        self.messages = {} if messages is None else messages
         self._failed_rules = {}
 
     def explode_rules(self, rules: dict):
@@ -103,6 +104,10 @@ class Validator:
     def get_value(self, attribute):
         return self.data.get(attribute)
 
+    # def validated(self):
+    #     if self.fails():
+    #         raise ValidationException(self)
+
     def _validate_attribute(self, attribute, rule):
         self._current_rule = rule
         value = self.get_value(attribute)
@@ -115,9 +120,14 @@ class Validator:
 
         rule_suffix, param = self._parse_rules(rule)
 
+        validatable = self.is_validatable(attribute, rule_suffix, value)
+
         method = getattr(self, '_validate_' + rule_suffix)
-        if not method(attribute, value, *param):
+        if validatable and not method(attribute, value, *param):
             self._add_message(attribute, rule_suffix)
+
+    def is_validatable(self, attribute, rule, value):
+        return rule in self._implicit_rules or attribute in self.data
 
     def _add_message(self, attribute, rule_suffix=None, message=None):
         if attribute not in self._failed_rules:
@@ -126,7 +136,11 @@ class Validator:
         if message:
             self._failed_rules[attribute].append(message)
         else:
-            self._failed_rules[attribute].append('validation.{}'.format(rule_suffix))
+            concrete_rule_message_key = "{}.{}".format(attribute, rule_suffix)
+            self._failed_rules[attribute].append(
+                self.messages[concrete_rule_message_key] if concrete_rule_message_key in self.messages else
+                self.messages[attribute] if attribute in self.messages else 'validation.{}'.format(rule_suffix)
+            )
 
     def _parse_rules(self, rules: str):
 
