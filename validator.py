@@ -34,15 +34,19 @@ class Validator:
 
     def __init__(self, data, rules, messages=None):
         self.data = data
-        self.initial_rules = rules
+        self.initial_rules = rules.copy()
         self.rules = self.explode_rules(rules)
         self.messages = {} if messages is None else messages
         self._failed_rules = {}
 
     def explode_rules(self, rules: dict):
         rule_copy = rules.copy()
-        for key, rule in rule_copy.items():
-            rule_copy[key] = rule.split('|') if isinstance(rule, str) else rule
+        for attribute, rule in rule_copy.items():
+            split_rule = rule.split('|') if isinstance(rule, str) else rule
+            rule_copy[attribute] = split_rule
+            if '*' in attribute:
+                rule_copy = {**rule_copy, **self._extract_wildcard_rules(attribute, split_rule, self.data)}
+                del rule_copy[attribute]
         return rule_copy
 
     def _get_size(self, attribute, value):
@@ -100,12 +104,32 @@ class Validator:
     def _validate_integer(self, attribute, value):
         return helper.is_int(value)
 
-    def get_value(self, attribute):
-        return self.data.get(attribute)
+    def _validate_list(self, attribute, value):
+        return isinstance(value, list)
 
-    # def validated(self):
-    #     if self.fails():
-    #         raise ValidationException(self)
+    def _validate_dict(self, attribute, value):
+        return isinstance(value, dict)
+
+    def get_value(self, attribute):
+        return helper.data_get(attribute, self.data)
+
+    def _extract_wildcard_rules(self, attribute, rule, data):
+        wildcard_rules = {}
+        attr_list = attribute.split('*', maxsplit=1)
+        attr = attr_list.pop(0).strip('.')
+        nested_rules = attr_list[0]
+        extracted_data = helper.data_get(attr, data)
+
+        for key, value in self._parse_data_for_loop(extracted_data):
+            if '*' in nested_rules:
+                print('nes')
+                self._extract_wildcard_rules(attr+nested_rules, rule, extracted_data)
+            else:
+                wildcard_rules[attr + '.' + str(key) + nested_rules] = rule
+        return wildcard_rules
+
+    def _parse_data_for_loop(self, data):
+        return data.items() if isinstance(data, dict) else enumerate(data)
 
     def _validate_attribute(self, attribute, rule):
         self._current_rule = rule
@@ -126,7 +150,7 @@ class Validator:
             self._add_message(attribute, rule_suffix)
 
     def is_validatable(self, attribute, rule, value):
-        return rule in self._implicit_rules or attribute in self.data
+        return rule in self._implicit_rules or helper.data_has(attribute, self.data) #attribute in self.data
 
     def _add_message(self, attribute, rule_suffix=None, message=None):
         if attribute not in self._failed_rules:
