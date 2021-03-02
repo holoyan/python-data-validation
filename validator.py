@@ -14,20 +14,18 @@ class Validator:
 
     _implicit_rules = [
         'required',
-        # 'Filled',
-        'RequiredWith',
-        'RequiredWithAll',
-        'RequiredWithout',
-        'RequiredWithoutAll',
-        'RequiredIf',
-        'RequiredUnless',
-        # 'Accepted',
-        'Present',
+        'requiredWith',
+        'requiredWithAll',
+        'requiredWithout',
+        'requiredWithoutAll',
+        'requiredIf',
+        'requiredUnless',
+        'present',
     ]
 
     _dependent_rules = [
-        'RequiredWith', 'RequiredWithAll', 'RequiredWithout', 'RequiredWithoutAll',
-        'RequiredIf', 'RequiredUnless', 'Confirmed', 'Same', 'Different', 'Unique',
+        'requiredWith', 'requiredWithAll', 'requiredWithout', 'requiredWithoutAll',
+        'requiredIf', 'requiredUnless', 'confirmed', 'Same', 'Different', 'Unique',
         'Before', 'After', 'BeforeOrEqual', 'AfterOrEqual', 'Gt', 'Lt', 'Gte', 'Lte',
     ]
 
@@ -69,6 +67,10 @@ class Validator:
             return False
 
         return True
+
+    def _validate_required_if(self, attribute, value, other_filed, other_value):
+        return helper.data_get(other_filed, self.data) == other_value
+
 
     def _validate_size(self, attribute, value, size):
         return self._get_size(attribute, value) == int(size)
@@ -148,7 +150,7 @@ class Validator:
 
         validatable = self.is_validatable(attribute, rule_suffix, value)
 
-        method = getattr(self, '_validate_' + rule_suffix)
+        method = getattr(self, '_validate_' + helper.to_snake(rule_suffix))
         if validatable and not method(attribute, value, *param):
             self._add_message(attribute, rule_suffix)
 

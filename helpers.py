@@ -2,8 +2,10 @@ import re
 from numbers import Number
 import copy
 
+
 def fn_exists(fn):
     return fn in dir(__builtins__)
+
 
 if 'is_int' not in dir(__builtins__):
     def is_int(value):
@@ -128,3 +130,7 @@ if not fn_exists('data_set'):
         index = segments.pop(0)
         index = int(index) if is_int(index) else index
         data[index] = copy.deepcopy(value)
+
+if not fn_exists('to_snake'):
+    def to_snake(str):
+        return re.sub(r'(?<!^)(?=[A-Z])', '_', str).lower()
