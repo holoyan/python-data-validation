@@ -134,3 +134,7 @@ if not fn_exists('data_set'):
 if not fn_exists('to_snake'):
     def to_snake(str):
         return re.sub(r'(?<!^)(?=[A-Z])', '_', str).lower()
+
+if not fn_exists('method_exists'):
+    def method_exists(obj, method):
+        return callable(getattr(obj, method, None))

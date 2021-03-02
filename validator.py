@@ -1,8 +1,9 @@
-import helpers as helper
+import helpers
 from closureValidationRule import ClosureValidationRule
 from validationException import ValidationException
 import random
 import string
+from Rules.ruleContract import RuleContract
 
 
 class Validator:
@@ -51,7 +52,7 @@ class Validator:
         return rule_copy
 
     def _get_size(self, attribute, value):
-        if helper.is_int(value):
+        if helpers.is_int(value):
             return int(value)
         elif isinstance(value, str):
             return len(value)
@@ -69,45 +70,44 @@ class Validator:
         return True
 
     def _validate_required_if(self, attribute, value, other_filed, other_value):
-        return helper.data_get(other_filed, self.data) == other_value
-
+        return helpers.data_get(other_filed, self.data) == other_value
 
     def _validate_size(self, attribute, value, size):
         return self._get_size(attribute, value) == int(size)
 
-    @helper.boarders_to_int
+    @helpers.boarders_to_int
     def _validate_between(self, attribute, value, left_board, right_board):
         return left_board <= self._get_size(attribute, value) <= right_board
 
-    @helper.boarders_to_int
+    @helpers.boarders_to_int
     def _validate_min(self, attribute, value, left_board):
         return self._get_size(attribute, value) >= int(left_board)
 
-    @helper.boarders_to_int
+    @helpers.boarders_to_int
     def _validate_max(self, attribute, value, right_board):
         return self._get_size(attribute, value) <= right_board
 
-    @helper.boarders_to_int
+    @helpers.boarders_to_int
     def _validate_gt(self, attribute, value, left_board):
         return self._get_size(attribute, value) > left_board
 
-    @helper.boarders_to_int
+    @helpers.boarders_to_int
     def _validate_gte(self, attribute, value, left_board):
         return self._get_size(attribute, value) >= left_board
 
-    @helper.boarders_to_int
+    @helpers.boarders_to_int
     def _validate_lt(self, attribute, value, right_board):
         return self._get_size(attribute, value) < right_board
 
-    @helper.boarders_to_int
+    @helpers.boarders_to_int
     def _validate_lte(self, attribute, value, right_board):
         return self._get_size(attribute, value) <= right_board
 
     def _validate_numeric(self, attribute, value):
-        return helper.is_numeric(value)
+        return helpers.is_numeric(value)
 
     def _validate_integer(self, attribute, value):
-        return helper.is_int(value)
+        return helpers.is_int(value)
 
     def _validate_list(self, attribute, value):
         return isinstance(value, list)
@@ -116,14 +116,14 @@ class Validator:
         return isinstance(value, dict)
 
     def get_value(self, attribute):
-        return helper.data_get(attribute, self.data)
+        return helpers.data_get(attribute, self.data)
 
     def _extract_wildcard_rules(self, attribute, rule, data):
         wildcard_rules = {}
         attr_list = attribute.split('*', maxsplit=1)
         attr = attr_list.pop(0).strip('.')
         nested_rules = attr_list[0]
-        extracted_data = helper.data_get(attr, data)
+        extracted_data = helpers.data_get(attr, data)
 
         for key, value in self._parse_data_for_loop(extracted_data):
             if '*' in nested_rules:
@@ -146,16 +146,26 @@ class Validator:
                 self._add_message(attribute, message=callback.message)
             return
 
+        if isinstance(rule, RuleContract):
+            return self._validate_with_custom_rule(rule, attribute, value)
+
         rule_suffix, param = self._parse_rules(rule)
 
         validatable = self.is_validatable(attribute, rule_suffix, value)
 
-        method = getattr(self, '_validate_' + helper.to_snake(rule_suffix))
+        method = getattr(self, '_validate_' + helpers.to_snake(rule_suffix))
         if validatable and not method(attribute, value, *param):
             self._add_message(attribute, rule_suffix)
 
+    def _validate_with_custom_rule(self, rule, attribute, value):
+        if not rule.passes(attribute, value):
+            if helpers.method_exists(rule, 'message'):
+                self._add_message(attribute, message=rule.message())
+            else:
+                self._add_message(attribute, rule.__class__.__name__)
+
     def is_validatable(self, attribute, rule, value):
-        return rule in self._implicit_rules or helper.data_has(attribute, self.data)  # attribute in self.data
+        return rule in self._implicit_rules or helpers.data_has(attribute, self.data)  # attribute in self.data
 
     def _add_message(self, attribute, rule_suffix=None, message=None):
         if attribute not in self._failed_rules:
@@ -208,11 +218,17 @@ class Validator:
         result = {}
         for attribute, rules in self.rules.items():
             missing_data = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(15))
-            value = helper.data_get(attribute, self.data, missing_data)
+            value = helpers.data_get(attribute, self.data, missing_data)
 
             if value != missing_data:
-                helper.data_set(result, attribute, value)
+                helpers.data_set(result, attribute, value)
         return result
 
     def fails(self):
         return not self.passes()
+
+
+class TestRule(RuleContract):
+
+    def passes(self, attribute, value):
+        return False
