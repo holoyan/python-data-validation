@@ -1,5 +1,8 @@
 import helpers as helper
 from closureValidationRule import ClosureValidationRule
+from validationException import ValidationException
+import random
+import string
 
 
 class Validator:
@@ -123,7 +126,7 @@ class Validator:
         for key, value in self._parse_data_for_loop(extracted_data):
             if '*' in nested_rules:
                 print('nes')
-                self._extract_wildcard_rules(attr+nested_rules, rule, extracted_data)
+                self._extract_wildcard_rules(attr + nested_rules, rule, extracted_data)
             else:
                 wildcard_rules[attr + '.' + str(key) + nested_rules] = rule
         return wildcard_rules
@@ -150,7 +153,7 @@ class Validator:
             self._add_message(attribute, rule_suffix)
 
     def is_validatable(self, attribute, rule, value):
-        return rule in self._implicit_rules or helper.data_has(attribute, self.data) #attribute in self.data
+        return rule in self._implicit_rules or helper.data_has(attribute, self.data)  # attribute in self.data
 
     def _add_message(self, attribute, rule_suffix=None, message=None):
         if attribute not in self._failed_rules:
@@ -195,6 +198,19 @@ class Validator:
                 if self._should_stop(attribute):
                     break
         return len(self._failed_rules) == 0
+
+    def validated(self):
+        if self.fails():
+            raise ValidationException(self)
+
+        result = {}
+        for attribute, rules in self.rules.items():
+            missing_data = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(15))
+            value = helper.data_get(attribute, self.data, missing_data)
+
+            if value != missing_data:
+                helper.data_set(result, attribute, value)
+        return result
 
     def fails(self):
         return not self.passes()

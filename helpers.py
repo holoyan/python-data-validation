@@ -1,5 +1,6 @@
 import re
 from numbers import Number
+import copy
 
 def fn_exists(fn):
     return fn in dir(__builtins__)
@@ -110,3 +111,20 @@ if not fn_exists('has_key'):
         except IndexError:
             return False
         return True
+
+if not fn_exists('data_set'):
+    def data_set(data, keys, value):
+        segments = keys.split('.')
+        while len(segments) > 1:
+            segment = segments.pop(0)
+
+            if is_int(segment):
+                segment = int(segment)
+                if not has_key(segment, data):
+                    data[segment] = {}
+            elif segment not in data:
+                data[segment] = {}
+            data = data[segment]
+        index = segments.pop(0)
+        index = int(index) if is_int(index) else index
+        data[index] = copy.copy(value)
