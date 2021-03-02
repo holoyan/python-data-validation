@@ -127,4 +127,4 @@ if not fn_exists('data_set'):
             data = data[segment]
         index = segments.pop(0)
         index = int(index) if is_int(index) else index
-        data[index] = copy.copy(value)
+        data[index] = copy.deepcopy(value)
