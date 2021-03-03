@@ -1,5 +1,5 @@
 import unittest
-from validator import Validator
+from pyva.validator import Validator
 import decimal
 import fractions
 

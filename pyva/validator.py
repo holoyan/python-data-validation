@@ -1,9 +1,9 @@
-import helpers
-from closureValidationRule import ClosureValidationRule
-from validationException import ValidationException
+import pyva.helpers as helpers
+from pyva.closureValidationRule import ClosureValidationRule
+from pyva.validationException import ValidationException
 import random
 import string
-from Rules.ruleContract import RuleContract
+from pyva.Rules.ruleContract import RuleContract
 
 
 class Validator:
