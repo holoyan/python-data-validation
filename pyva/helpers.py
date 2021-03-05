@@ -7,15 +7,15 @@ def fn_exists(fn):
     return fn in dir(__builtins__)
 
 
-if 'is_int' not in dir(__builtins__):
+if not fn_exists('is_int'):
     def is_int(value):
         return True if re.match("[-+]?\d+$", str(value)) is not None else False
 
-if 'is_numeric' not in dir(__builtins__):
+if not fn_exists('is_numeric'):
     def is_numeric(value):
         return True if isinstance(value, Number) or (isinstance(value, str) and value.isnumeric()) else False
 
-if 'boarders_to_int' not in dir(__builtins__):
+if not fn_exists('boarders_to_int'):
     def boarders_to_int(fn):
         def wrapper_to_int(self, *args):
             list_args = list(args)
@@ -94,23 +94,20 @@ if not fn_exists('data_has'):
         '''
         if key in data:
             return True
-        try:
-            values = data.copy()
-            for part in key.split('.'):
-                casted_index = int(part) if is_int(part) else part
-                if has_key(casted_index, values):
-                    values = values[casted_index]
-                else:
-                    return False
-        except:
-            pass
+        values = data.copy()
+        for part in key.split('.'):
+            part = int(part) if is_int(part) else part
+            if has_key(part, values):
+                values = values[part]
+            else:
+                return False
         return True
 
 if not fn_exists('has_key'):
     def has_key(key, data):
         try:
             data[key]
-        except IndexError:
+        except (KeyError, TypeError):
             return False
         return True
 
@@ -138,3 +135,7 @@ if not fn_exists('to_snake'):
 if not fn_exists('method_exists'):
     def method_exists(obj, method):
         return callable(getattr(obj, method, None))
+
+if not fn_exists('foreach'):
+    def foreach(data):
+        return data.items() if isinstance(data, dict) else enumerate(data)
