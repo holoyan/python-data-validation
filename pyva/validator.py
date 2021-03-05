@@ -4,15 +4,10 @@ from pyva.validationException import ValidationException
 import random
 import string
 from pyva.Rules.ruleContract import RuleContract
+import re
 
 
 class Validator:
-    #     tmp
-    # _file_rules = [
-    #     'File', 'Image', 'Mimes', 'Mimetypes', 'Min',
-    #     'Max', 'Size', 'Between', 'Dimensions',
-    # ]
-
     _implicit_rules = [
         'required',
         'requiredWith',
@@ -37,19 +32,56 @@ class Validator:
     def __init__(self, data, rules, messages=None):
         self.data = data
         self.initial_rules = rules.copy()
-        self.rules = self.explode_rules(rules)
         self.messages = {} if messages is None else messages
         self._failed_rules = {}
+        self._implicit_attributes = {}
+        self.rules = self.explode_rules(rules)
 
     def explode_rules(self, rules: dict):
         rule_copy = rules.copy()
         for attribute, rule in rule_copy.items():
+            # split rules into list
             split_rule = rule.split('|') if isinstance(rule, str) else rule
             rule_copy[attribute] = split_rule
+            # if there is * then we are gone iterate over data and create all nested rules
             if '*' in attribute:
-                rule_copy = {**rule_copy, **self._extract_wildcard_rules(attribute, split_rule, self.data)}
+                nested_attributes = self._extract_wildcard_rules(attribute, split_rule)
+                if attribute not in self._implicit_attributes:
+                    self._implicit_attributes[attribute] = []
+                self._implicit_attributes[attribute] = list(nested_attributes.keys())
+                rule_copy = {**rule_copy, **nested_attributes}
                 del rule_copy[attribute]
         return rule_copy
+
+    def _extract_wildcard_rules(self, attribute, rule):
+        '''
+
+        recursively extract nested attributes
+
+        :param attribute:
+        :param rule:
+        :param data:
+        :return:
+        '''
+        wildcard_rules = {}
+        # users.*.family.*.child
+        # extract data for first * and do it recursively
+        attr_list = attribute.split('*', maxsplit=1)
+
+        attr = attr_list.pop(0).strip('.')
+        nested_rules = attr_list[0]
+        extracted_data = helpers.data_get(attr, self.data)
+
+        if not extracted_data:
+            wildcard_rules[attribute.replace('*', '0')] = rule
+            return wildcard_rules
+
+        for key, value in helpers.foreach(extracted_data):
+            if '*' in nested_rules:
+                wildcard_rules = {**wildcard_rules, **self._extract_wildcard_rules(attr + '.' + str(key) + nested_rules, rule)}
+            else:
+                wildcard_rules[attr + '.' + str(key) + nested_rules] = rule
+        return wildcard_rules
 
     def _get_size(self, attribute, value):
         if helpers.is_int(value):
@@ -70,7 +102,20 @@ class Validator:
         return True
 
     def _validate_required_if(self, attribute, value, other_filed, other_value):
-        return helpers.data_get(other_filed, self.data) == other_value
+        if helpers.data_get(other_filed, self.data) == other_value:
+            return self._validate_required(attribute, value)
+        return True
+
+    def _validate_required_with(self, attribute, value, *other_fields):
+        if not self._all_failing(other_fields):
+            return self._validate_required(attribute, value)
+        return True
+
+    def _all_failing(self, params):
+        for att in params:
+            if self._validate_required(att, helpers.data_get(att, self.data)):
+                return False
+        return True
 
     def _validate_size(self, attribute, value, size):
         return self._get_size(attribute, value) == int(size)
@@ -118,24 +163,6 @@ class Validator:
     def get_value(self, attribute):
         return helpers.data_get(attribute, self.data)
 
-    def _extract_wildcard_rules(self, attribute, rule, data):
-        wildcard_rules = {}
-        attr_list = attribute.split('*', maxsplit=1)
-        attr = attr_list.pop(0).strip('.')
-        nested_rules = attr_list[0]
-        extracted_data = helpers.data_get(attr, data)
-
-        for key, value in self._parse_data_for_loop(extracted_data):
-            if '*' in nested_rules:
-                print('nes')
-                self._extract_wildcard_rules(attr + nested_rules, rule, extracted_data)
-            else:
-                wildcard_rules[attr + '.' + str(key) + nested_rules] = rule
-        return wildcard_rules
-
-    def _parse_data_for_loop(self, data):
-        return data.items() if isinstance(data, dict) else enumerate(data)
-
     def _validate_attribute(self, attribute, rule):
         self._current_rule = rule
         value = self.get_value(attribute)
@@ -149,13 +176,39 @@ class Validator:
         if isinstance(rule, RuleContract):
             return self._validate_with_custom_rule(rule, attribute, value)
 
-        rule_suffix, param = self._parse_rules(rule)
+        rule_suffix, params = self._parse_rules(rule)
+
+        if rule_suffix in self._dependent_rules:
+            keys = self._attribute_keys(attribute)
+            if keys:
+                params = self._replace_asterisks(params, keys)
 
         validatable = self.is_validatable(attribute, rule_suffix, value)
 
         method = getattr(self, '_validate_' + helpers.to_snake(rule_suffix))
-        if validatable and not method(attribute, value, *param):
+        if validatable and not method(attribute, value, *params):
             self._add_message(attribute, rule_suffix)
+
+    def _attribute_keys(self, attribute: str):
+        original_attribute = attribute
+        for unparsed, parsed in helpers.foreach(self._implicit_attributes):
+            if attribute in parsed:
+                original_attribute = unparsed
+
+        pattern = re.escape(original_attribute).replace('\*', '([^\.]+)')
+        matches = re.findall(pattern, attribute, re.DOTALL)
+
+        if matches:
+            if isinstance(matches[0], tuple):
+                matches = list(matches[0])
+        return matches
+
+    def _replace_asterisks(self, params, keys):
+        parsed_params = []
+        for attr in params:
+            attr = attr.replace('*', '{}')
+            parsed_params.append(attr.format(*keys))
+        return parsed_params
 
     def _validate_with_custom_rule(self, rule, attribute, value):
         if not rule.passes(attribute, value):
@@ -226,9 +279,3 @@ class Validator:
 
     def fails(self):
         return not self.passes()
-
-
-class TestRule(RuleContract):
-
-    def passes(self, attribute, value):
-        return False
