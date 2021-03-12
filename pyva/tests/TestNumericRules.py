@@ -39,6 +39,7 @@ class TestNumericRules(unittest.TestCase):
             'fraction': fractions.Fraction(2, 1),
             'complex': 2 + 4j,
             'stringInteger': '4',
+            'stringFloat': '5.9'
         },
         {
             'int': 'numeric',
@@ -50,17 +51,6 @@ class TestNumericRules(unittest.TestCase):
         })
 
         self.assertTrue(validation.passes())
-
-    def test_numeric_fails(self):
-        validation = Validator({
-            'stringFloat': '4.5',
-        },
-        {
-            'stringFloat': 'numeric',
-        })
-
-        self.assertTrue(validation.fails())
-
 
     def test_nested_data_min(self):
         validation = Validator({

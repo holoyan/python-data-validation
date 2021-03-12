@@ -13,7 +13,23 @@ if not fn_exists('is_int'):
 
 if not fn_exists('is_numeric'):
     def is_numeric(value):
-        return True if isinstance(value, Number) or (isinstance(value, str) and value.isnumeric()) else False
+        return True if isinstance(value, Number) or \
+                       (isinstance(value, str) and value.isnumeric()) or \
+                       is_float(value) else False
+
+if not fn_exists('is_float'):
+    def is_float(num):
+        return isinstance(num, float) or (
+                isinstance(num, str) and num.find('.') > 0 and is_int(num.replace('.', '', 1))
+        )
+
+if not fn_exists('to_numeric'):
+    def to_numeric(num):
+        if is_int(num):
+            return int(num)
+        elif is_float(num):
+            return float(num)
+        raise ValueError('Invalid number provided')
 
 if not fn_exists('boarders_to_int'):
     def boarders_to_int(fn):

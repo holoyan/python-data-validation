@@ -10,19 +10,19 @@ import re
 class Validator:
     _implicit_rules = [
         'required',
-        'requiredWith',
-        'requiredWithAll',
-        'requiredWithout',
-        'requiredWithoutAll',
-        'requiredIf',
-        'requiredUnless',
+        'required_with',
+        'required_with_all',
+        'required_without',
+        'required_without_all',
+        'required_if',
+        'required_unless',
         'present',
     ]
 
     _dependent_rules = [
-        'requiredWith', 'requiredWithAll', 'requiredWithout', 'requiredWithoutAll',
-        'requiredIf', 'requiredUnless', 'confirmed', 'Same', 'Different', 'Unique',
-        'Before', 'After', 'BeforeOrEqual', 'AfterOrEqual', 'Gt', 'Lt', 'Gte', 'Lte',
+        'required_with', 'required_with_all', 'required_without', 'required_without_all',
+        'required_if', 'required_unless', 'confirmed', 'same', 'different', 'unique',
+        'before', 'after', 'before_or_equal', 'after_or_equal', 'gt', 'lt', 'gte', 'lte',
     ]
 
     _size_rules = ['size', 'between', 'min', 'max', 'gt', 'lt', 'gte', 'lte']
@@ -84,19 +84,19 @@ class Validator:
         return wildcard_rules
 
     def _get_size(self, attribute, value):
-        if helpers.is_int(value):
-            return int(value)
-        elif isinstance(value, str):
+        if helpers.is_numeric(value):
+            return helpers.to_numeric(value)
+        elif isinstance(value, str) or hasattr(value, '__len__'):
             return len(value)
         else:
-            raise ValueError('Value must be instance of int or str')
+            raise ValueError('Value must be instance of int or str or must implement __len__ method')
 
     def _validate_required(self, attribute, value, *options):
         if value is None:
             return False
         elif isinstance(value, str) and len(''.join(value.strip())) < 1:
             return False
-        elif hasattr(value, '__iter__') and len(value) < 1:
+        elif hasattr(value, '__len__') and len(value) < 1:
             return False
 
         return True
@@ -132,21 +132,73 @@ class Validator:
     def _validate_max(self, attribute, value, right_board):
         return self._get_size(attribute, value) <= right_board
 
-    @helpers.boarders_to_int
-    def _validate_gt(self, attribute, value, left_board):
-        return self._get_size(attribute, value) > left_board
+    def _validate_gt(self, attribute, value, other_filed):
 
-    @helpers.boarders_to_int
-    def _validate_gte(self, attribute, value, left_board):
-        return self._get_size(attribute, value) >= left_board
+        other_value = helpers.data_get(other_filed, self.data)
 
-    @helpers.boarders_to_int
-    def _validate_lt(self, attribute, value, right_board):
-        return self._get_size(attribute, value) < right_board
+        # if values are numeric cast and check
+        if helpers.is_numeric(value) and helpers.is_numeric(other_value):
+            value = helpers.to_numeric(value)
+            other_value = helpers.to_numeric(other_value)
+            return value > other_value
 
-    @helpers.boarders_to_int
-    def _validate_lte(self, attribute, value, right_board):
-        return self._get_size(attribute, value) <= right_board
+        # if they are not same type return False
+        if type(value) != type(other_value):
+            return False
+
+        # check sizes
+        return self._get_size(attribute, value) > self._get_size(other_filed, other_value)
+
+    def _validate_gte(self, attribute, value, other_filed):
+
+        other_value = helpers.data_get(other_filed, self.data)
+
+        # if values are numeric cast and check
+        if helpers.is_numeric(value) and helpers.is_numeric(other_value):
+            value = helpers.to_numeric(value)
+            other_value = helpers.to_numeric(other_value)
+            return value >= other_value
+
+        # if they are not same type return False
+        if type(value) != type(other_value):
+            return False
+
+        # check sizes
+        return self._get_size(attribute, value) >= self._get_size(other_filed, other_value)
+
+    def _validate_lt(self, attribute, value, other_filed):
+
+        other_value = helpers.data_get(other_filed, self.data)
+
+        # if values are numeric cast and check
+        if helpers.is_numeric(value) and helpers.is_numeric(other_value):
+            value = helpers.to_numeric(value)
+            other_value = helpers.to_numeric(other_value)
+            return value < other_value
+
+        # if they are not same type return False
+        if type(value) != type(other_value):
+            return False
+
+        # check sizes
+        return self._get_size(attribute, value) < self._get_size(other_filed, other_value)
+
+    def _validate_lte(self, attribute, value, other_filed):
+
+        other_value = helpers.data_get(other_filed, self.data)
+
+        # if values are numeric cast and check
+        if helpers.is_numeric(value) and helpers.is_numeric(other_value):
+            value = helpers.to_numeric(value)
+            other_value = helpers.to_numeric(other_value)
+            return value <= other_value
+
+        # if they are not same type return False
+        if type(value) != type(other_value):
+            return False
+
+        # check sizes
+        return self._get_size(attribute, value) <= self._get_size(other_filed, other_value)
 
     def _validate_numeric(self, attribute, value):
         return helpers.is_numeric(value)
@@ -185,7 +237,7 @@ class Validator:
 
         validatable = self.is_validatable(attribute, rule_suffix, value)
 
-        method = getattr(self, '_validate_' + helpers.to_snake(rule_suffix))
+        method = getattr(self, '_validate_' + rule_suffix)
         if validatable and not method(attribute, value, *params):
             self._add_message(attribute, rule_suffix)
 

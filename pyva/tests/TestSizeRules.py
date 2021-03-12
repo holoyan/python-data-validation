@@ -104,8 +104,8 @@ class TestSizeRules(unittest.TestCase):
             'age': 22,
             'height': 185
         }, {
-            'age': 'gt:18',
-            'height': 'gt:1'
+            'age': 'required',
+            'height': 'gt:age'
         })
 
         self.assertTrue(validation.passes())
@@ -113,47 +113,47 @@ class TestSizeRules(unittest.TestCase):
     def test_gt_fail(self):
         validation = Validator({
             'age': 17,
-            'height': 185
+            'height': 10
         }, {
-            'age': 'gt:18',
-            'height': 'gt:185'
+            'age': 'required',
+            'height': 'gt:age'
         })
 
         self.assertTrue(validation.fails())
-        self.assertTrue('age' in validation.failed_rules)
         self.assertTrue('height' in validation.failed_rules)
 
     def test_lt(self):
         validation = Validator({
-            'age': 10,
-            'height': 185
+            'age': 29,
+            'height': 20
         }, {
-            'age': 'lt:18',
-            'height': 'lt:250'
+            'age': 'required',
+            'height': 'lt:age'
         })
 
         self.assertTrue(validation.passes())
 
     def test_lt_fail(self):
         validation = Validator({
-            'age': 17,
+            'age': 29,
             'height': 185
         }, {
-            'age': 'lt:17',
-            'height': 'lt:200'
+            'age': 'required',
+            'height': 'lt:age'
         })
 
         self.assertTrue(validation.fails())
-        self.assertTrue('age' in validation.failed_rules)
-        self.assertTrue('height' not in validation.failed_rules)
+        self.assertTrue('height' in validation.failed_rules)
 
     def test_gte(self):
         validation = Validator({
             'age': 10,
-            'height': 185
+            'height': 185,
+            'width': 185
         }, {
-            'age': 'gte:10',
-            'height': 'gte:100'
+            'age': 'required',
+            'height': 'gte:age',
+            'width': 'gte:height',
         })
 
         self.assertTrue(validation.passes())
@@ -161,38 +161,38 @@ class TestSizeRules(unittest.TestCase):
     def test_gte_fails(self):
         validation = Validator({
             'age': 9,
-            'height': 185
+            'height': 185,
+            'width': 184,
         }, {
-            'age': 'gte:10',
-            'height': 'gte:100'
+            'age': 'required',
+            'height': 'gte:age',
+            'width': 'gte:height'
         })
 
         self.assertTrue(validation.fails())
-        self.assertTrue('age' in validation.failed_rules)
         self.assertTrue('height' not in validation.failed_rules)
 
     def test_lte(self):
         validation = Validator({
-            'age': 10,
+            'age': 90,
             'height': 90
         }, {
-            'age': 'lte:10',
-            'height': 'lte:100'
+            'age': 'required',
+            'height': 'lte:height'
         })
 
         self.assertTrue(validation.passes())
 
     def test_lte_fails(self):
         validation = Validator({
-            'age': 10,
+            'age': 184,
             'height': 185
         }, {
-            'age': 'lte:10',
-            'height': 'lte:100'
+            'age': 'required',
+            'height': 'lte:age'
         })
 
         self.assertTrue(validation.fails())
-        self.assertTrue('age' not in validation.failed_rules)
         self.assertTrue('height' in validation.failed_rules)
 
 
