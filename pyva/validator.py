@@ -101,21 +101,40 @@ class Validator:
 
         return True
 
-    def _validate_required_if(self, attribute, value, other_filed, other_value):
-        if helpers.data_get(other_filed, self.data) == other_value:
+    def _validate_required_if(self, attribute, value, *other_params):
+
+        other_value = helpers.data_get(other_params[0], self.data)
+        values = other_params[1:]
+
+        if isinstance(other_value, bool):
+            values = list(map(lambda val: True if val == 'True' else False if val == 'False' else val))
+
+        if other_value in values:
             return self._validate_required(attribute, value)
+
         return True
 
     def _validate_required_with(self, attribute, value, *other_fields):
-        if not self._all_failing(other_fields):
+        if self._any_required(other_fields):
             return self._validate_required(attribute, value)
         return True
 
-    def _all_failing(self, params):
+    def _validate_required_with_all(self, attribute, value, *other_fields):
+        if not self._any_failing_required(other_fields):
+            return self._validate_required(attribute, value)
+        return True
+
+    def _any_failing_required(self, params):
+        for att in params:
+            if not self._validate_required(att, helpers.data_get(att, self.data)):
+                return True
+        return False
+
+    def _any_required(self, params):
         for att in params:
             if self._validate_required(att, helpers.data_get(att, self.data)):
-                return False
-        return True
+                return True
+        return False
 
     def _validate_size(self, attribute, value, size):
         return self._get_size(attribute, value) == int(size)
@@ -235,11 +254,16 @@ class Validator:
             if keys:
                 params = self._replace_asterisks(params, keys)
 
+        params = self._to_numeric_if_needs(params)
+
         validatable = self.is_validatable(attribute, rule_suffix, value)
 
         method = getattr(self, '_validate_' + rule_suffix)
         if validatable and not method(attribute, value, *params):
             self._add_message(attribute, rule_suffix)
+
+    def _to_numeric_if_needs(self, params):
+        return list(map(lambda val: helpers.to_numeric(val) if helpers.is_numeric(val) else val, params))
 
     def _attribute_keys(self, attribute: str):
         original_attribute = attribute
