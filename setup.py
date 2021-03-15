@@ -2,7 +2,7 @@ from distutils.core import setup
 setup(
   name = 'pyva',
   packages = ['pyva'],
-  version = '0.1',
+  version = '0.2',
   license='MIT',
   description = 'Simple and flexible python data validation library',
   author = 'Artak',
