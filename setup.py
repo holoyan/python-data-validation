@@ -8,7 +8,7 @@ setup(
   author = 'Artak',
   author_email = 'artaksafaryanc@gmail.com',
   url = 'https://github.com/holoyan/python-data-validation',
-  download_url = 'https://github.com/holoyan/python-data-validation/archive/0.1.tar.gz',
+  download_url = 'https://github.com/holoyan/python-data-validation/archive/0.2.tar.gz',
   keywords = ['data', 'validation', 'validator', 'data validator'],
   classifiers=[
     'Development Status :: 3 - Alpha',
