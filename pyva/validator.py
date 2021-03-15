@@ -114,6 +114,24 @@ class Validator:
 
         return True
 
+    def _validate_required_unless(self, attribute, value, *other_params):
+
+        other_value = helpers.data_get(other_params[0], self.data)
+        values = other_params[1:]
+
+        if isinstance(other_value, bool):
+            values = list(map(lambda val: True if val == 'True' else False if val == 'False' else val))
+
+        # if other value in list of rules values then validate as required
+        if other_value not in values:
+            return self._validate_required(attribute, value)
+
+        return True
+
+    def _validate_present(self, attribute, value, *other_params):
+        return helpers.data_has(attribute, self.data)
+
+
     def _validate_required_with(self, attribute, value, *other_fields):
         if self._any_required(other_fields):
             return self._validate_required(attribute, value)
@@ -124,11 +142,27 @@ class Validator:
             return self._validate_required(attribute, value)
         return True
 
+    def _validate_required_without(self, attribute, value, *other_fields):
+        if self._any_failing_required(other_fields):
+            return self._validate_required(attribute, value)
+        return True
+
+    def _validate_required_without_all(self, attribute, value, *other_fields):
+        if self._all_failing_required(other_fields):
+            return self._validate_required(attribute, value)
+        return True
+
     def _any_failing_required(self, params):
         for att in params:
             if not self._validate_required(att, helpers.data_get(att, self.data)):
                 return True
         return False
+
+    def _all_failing_required(self, params):
+        for att in params:
+            if self._validate_required(att, helpers.data_get(att, self.data)):
+                return False
+        return True
 
     def _any_required(self, params):
         for att in params:
