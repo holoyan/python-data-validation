@@ -1,5 +1,5 @@
 import unittest
-from pyva.validator import Validator
+from pyva import Validator
 
 
 class TestDependentRules(unittest.TestCase):

@@ -1,9 +1,9 @@
 import pyva.helpers as helpers
 from pyva.closureValidationRule import ClosureValidationRule
-from pyva.validationException import ValidationException
+from pyva import ValidationException
 import random
 import string
-from pyva.Rules.ruleContract import RuleContract
+from pyva import RuleContract
 import re
 
 
@@ -130,7 +130,6 @@ class Validator:
 
     def _validate_present(self, attribute, value, *other_params):
         return helpers.data_has(attribute, self.data)
-
 
     def _validate_required_with(self, attribute, value, *other_fields):
         if self._any_required(other_fields):
@@ -323,7 +322,7 @@ class Validator:
     def _validate_with_custom_rule(self, rule, attribute, value):
         if not rule.passes(attribute, value):
             if helpers.method_exists(rule, 'message'):
-                self._add_message(attribute, message=rule.message())
+                self._add_message(attribute, message=rule.message(attribute, value))
             else:
                 self._add_message(attribute, rule.__class__.__name__)
 

@@ -1,5 +1,5 @@
 # Python data validation library
-## (Under development)
+### (Under development)
 
 
 ## Table of Contents
@@ -32,6 +32,7 @@
 - [Extending Validator](#extending-validator)
   - [Custom Validation using callback](#custom-validation-using-callback)
   - [Custom Validation using RuleContract](#custom-validation-using-rulecontract)
+- [Examples](https://github.com/holoyan/python-data-validation/tree/master/examples)  
 - [Credits](#credits)  
 - [License](#license)  
 
@@ -40,7 +41,7 @@
 `piva` is a simple and powerful library for data validation
 
 ```python
-from pyva.validator import Validator
+from pyva import Validator
 
 validation = Validator(
     {
@@ -54,7 +55,7 @@ validation = Validator(
 )
 
 if validation.passes():
-# do something cool
+    # do something cool
 
 ```
 
@@ -68,7 +69,7 @@ if validation.passes():
 
 ```python
 
-from pyva.validator import Validator
+from pyva import Validator
 
 data = {
     'user': {
@@ -114,7 +115,7 @@ The field under validation must be present in the input data and not empty. A fi
 
 * The value is None.
 * The value is an empty string.
-* The value is an empty list,dict... or object that implments \_\_len\_\_ method and len(obj) < 1.
+* The value is an empty list,dict... or object that implements \_\_len\_\_ method and len(obj) < 1.
 
 ### required_with:foo,bar,...
 
@@ -207,7 +208,7 @@ The field under validation must be less than or equal to the given field. The tw
 
 ```python
 
-from pyva.validator import Validator
+from pyva import Validator
 
 def is_odd(attribute, value, fail):
     
@@ -240,8 +241,8 @@ For this you need to import `RuleContract`
 
 ```python
 
-from pyva.Rules.ruleContract import RuleContract
-from pyva.validator import Validator
+from pyva import RuleContract
+from pyva import Validator
 
 # you class must implement passes() method
 

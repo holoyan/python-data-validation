@@ -1,4 +1,4 @@
-from pyva.validator import Validator
+from pyva import Validator
 
 data = {
     'users': [
