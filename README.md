@@ -17,6 +17,7 @@
   - [required_if](#required_ifanotherfieldvalue)
   - [required_unless](#required_unlessanotherfieldvalue)
   - [present](#present)
+  - [email](#email)  
   - [size](#sizevalue)
   - [numeric](#numeric)
   - [integer](#integer)
@@ -146,6 +147,14 @@ The field under validation must be present and not empty unless the anotherfield
 ### present
 
 The field under validation must be present in the input data but can be empty.
+
+### email
+
+The field under validation must be formatted as an email address
+
+check some valid/invalid email [examples](https://github.com/holoyan/python-data-validation/tree/master/examples/emailChecking.py)
+
+**if this does not fit to your requirements check** [extending validator](#extending-validator) section
 
 ### size:value
 

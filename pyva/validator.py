@@ -27,6 +27,8 @@ class Validator:
 
     _size_rules = ['size', 'between', 'min', 'max', 'gt', 'lt', 'gte', 'lte']
 
+    _compiled_regexes = None
+
     numeric_rules = ['numeric', 'integer']
 
     def __init__(self, data, rules, messages=None):
@@ -78,7 +80,8 @@ class Validator:
 
         for key, value in helpers.foreach(extracted_data):
             if '*' in nested_rules:
-                wildcard_rules = {**wildcard_rules, **self._extract_wildcard_rules(attr + '.' + str(key) + nested_rules, rule)}
+                wildcard_rules = {**wildcard_rules,
+                                  **self._extract_wildcard_rules(attr + '.' + str(key) + nested_rules, rule)}
             else:
                 wildcard_rules[attr + '.' + str(key) + nested_rules] = rule
         return wildcard_rules
@@ -263,6 +266,17 @@ class Validator:
 
     def _validate_dict(self, attribute, value):
         return isinstance(value, dict)
+
+    def _validate_email(self, attribute, value):
+
+        pattern = """(?!(?:(?:\\x22?\\x5C[\\x00-\\x7E]\\x22?)|(?:\\x22?[^\\x5C\\x22]\\x22?)){255,})(?!(?:(?:\\x22?\\x5C[\\x00-\\x7E]\\x22?)|(?:\\x22?[^\\x5C\\x22]\\x22?)){65,}@)(?:(?:[\\x21\\x23-\\x27\\x2A\\x2B\\x2D\\x2F-\\x39\\x3D\\x3F\\x5E-\\x7E]+)|(?:\\x22(?:[\\x01-\\x08\\x0B\\x0C\\x0E-\\x1F\\x21\\x23-\\x5B\\x5D-\\x7F]|(?:\\x5C[\\x00-\\x7F]))*\\x22))(?:\\.(?:(?:[\\x21\\x23-\\x27\\x2A\\x2B\\x2D\\x2F-\\x39\\x3D\\x3F\\x5E-\\x7E]+)|(?:\\x22(?:[\\x01-\\x08\\x0B\\x0C\\x0E-\\x1F\\x21\\x23-\\x5B\\x5D-\\x7F]|(?:\\x5C[\\x00-\\x7F]))*\\x22)))*@(?:(?:(?!.*[^.]{64,})(?:(?:(?:xn--)?[a-z0-9]+(?:-[a-z0-9]+)*\\.){1,126}){1,}(?:(?:[a-z][a-z0-9]*)|(?:(?:xn--)[a-z0-9]+))(?:-[a-z0-9]+)*)|(?:\\[(?:(?:IPv6:(?:(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){7})|(?:(?!(?:.*[a-f0-9][:\\]]){7,})(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,5})?::(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,5})?)))|(?:(?:IPv6:(?:(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){5}:)|(?:(?!(?:.*[a-f0-9]:){5,})(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,3})?::(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,3}:)?)))?(?:(?:25[0-5])|(?:2[0-4][0-9])|(?:1[0-9]{2})|(?:[1-9]?[0-9]))(?:\\.(?:(?:25[0-5])|(?:2[0-4][0-9])|(?:1[0-9]{2})|(?:[1-9]?[0-9]))){3}))\\]))"""
+
+        if self._compiled_regexes is None:
+            self._compiled_regexes = {}
+        if pattern not in self._compiled_regexes:
+            email_reg = re.compile(pattern)
+            self._compiled_regexes[pattern] = email_reg
+        return self._compiled_regexes[pattern].match(value) is not None
 
     def get_value(self, attribute):
         return helpers.data_get(attribute, self.data)
