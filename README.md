@@ -17,7 +17,11 @@
   - [required_if](#required_ifanotherfieldvalue)
   - [required_unless](#required_unlessanotherfieldvalue)
   - [present](#present)
-  - [email](#email)  
+  - [email](#email)
+  - [url](#url)
+  - [ip](#ip)
+  - [ipv4](#ipv4)
+  - [ipv6](#ipv6)
   - [size](#sizevalue)
   - [numeric](#numeric)
   - [integer](#integer)
@@ -155,6 +159,23 @@ The field under validation must be formatted as an email address
 check some valid/invalid email [examples](https://github.com/holoyan/python-data-validation/tree/master/examples/emailChecking.py)
 
 **if this does not fit to your requirements check** [extending validator](#extending-validator) section
+
+
+### url
+
+The field under validation must be a valid URL.
+
+### ip
+
+The field under validation must be an IP address.
+
+### ipv4
+
+The field under validation must be an IPv4 address.
+
+### ipv6
+
+The field under validation must be an IPv6 address.
 
 ### size:value
 
