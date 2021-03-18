@@ -29,7 +29,7 @@ class Validator:
 
     _compiled_regexes = None
 
-    numeric_rules = ['numeric', 'integer']
+    _numeric_rules = ['numeric', 'integer']
 
     def __init__(self, data, rules, messages=None):
         self.data = data
@@ -302,10 +302,19 @@ class Validator:
 
         return self._compiled_regexes[pattern].match(value) is not None
 
+    def _validate_in(self, attribute, value, *other_values):
+        return value in other_values
+
+    def _validate_string(self, attribute, value):
+        return isinstance(value, str)
+
+    def _validate_nullable(self, *empty_params):
+        return True
+
     def get_value(self, attribute):
         return helpers.data_get(attribute, self.data)
 
-    def _validate_attribute(self, attribute, rule):
+    def __validate_attribute(self, attribute, rule):
         self._current_rule = rule
         value = self.get_value(attribute)
 
@@ -365,7 +374,18 @@ class Validator:
                 self._add_message(attribute, rule.__class__.__name__)
 
     def is_validatable(self, attribute, rule, value):
-        return rule in self._implicit_rules or helpers.data_has(attribute, self.data)  # attribute in self.data
+        if rule in self._implicit_rules:
+            return True
+
+        data = helpers.data_get(attribute, self.data)
+
+        if self.has_rule(attribute, 'nullable') == False and data is not None:
+            return True
+
+        if helpers.data_has(attribute, self.data) and data is not None:
+            return True
+
+        return False
 
     def _add_message(self, attribute, rule_suffix=None, message=None):
         if attribute not in self._failed_rules:
@@ -379,6 +399,21 @@ class Validator:
                 self.messages[concrete_rule_message_key] if concrete_rule_message_key in self.messages else
                 self.messages[attribute] if attribute in self.messages else 'validation.{}'.format(rule_suffix)
             )
+
+    def has_rule(self, attribute, rule):
+        return rule in self._get_rule(attribute)
+
+    def _get_rule(self, attribute):
+
+        if attribute not in self.rules:
+            return []
+
+        rules = []
+        for rule in self.rules[attribute]:
+            rule_suffix, params = self._parse_rules(rule)
+            rules.append(rule_suffix)
+
+        return rules
 
     def _parse_rules(self, rules: str):
 
@@ -405,7 +440,7 @@ class Validator:
     def passes(self):
         for attribute, rules in self.rules.items():
             for rule in rules:
-                self._validate_attribute(attribute, rule)
+                self.__validate_attribute(attribute, rule)
 
                 if self._should_stop(attribute):
                     break

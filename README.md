@@ -1,6 +1,4 @@
 # Python data validation library
-### (Under development)
-
 
 ## Table of Contents
 
@@ -25,9 +23,12 @@
   - [size](#sizevalue)
   - [numeric](#numeric)
   - [integer](#integer)
+  - [string](#string)  
   - [list](#list)
   - [dict](#dict)
   - [between](#betweenminmax)
+  - [in](#infoobar)
+  - [nullable](#nullable)  
   - [min](#minvalue)
   - [max](#maxvalue)
   - [gt](#gtother_field)
@@ -192,6 +193,10 @@ The field under validation must be instance of `numbers.Number` or numeric strin
 
 The field under validation must be an integer.
 
+### string
+
+The field under validation must be a string.
+
 ### list
 
 The field under validation must be instance of list.
@@ -204,6 +209,14 @@ The field under validation must be instance of dict.
 
 The field under validation must have a size between the given min and max.
 Strings, numerics, list, dict... are evaluated in the same fashion as the [size](#sizevalue) rule.
+
+### in:foo,bar,...
+
+The field under validation must be included in the given list of values.
+
+### nullable
+
+The field under validation may be `None`.
 
 ### min:value
 
