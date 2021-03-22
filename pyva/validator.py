@@ -33,6 +33,8 @@ class Validator:
 
     _regex_rules = ['re']
 
+    __passed = None
+
     def __init__(self, data, rules, messages=None):
         self.data = data
         self.initial_rules = rules.copy()
@@ -454,13 +456,19 @@ class Validator:
         return self._failed_rules
 
     def passes(self):
+
+        if self.__passed is not None:
+            return self.__passed
+
         for attribute, rules in self.rules.items():
             for rule in rules:
                 self.__validate_attribute(attribute, rule)
 
                 if self._should_stop(attribute):
                     break
-        return len(self._failed_rules) == 0
+
+        self.__passed = len(self._failed_rules) == 0
+        return self.__passed
 
     def validated(self):
         if self.fails():
