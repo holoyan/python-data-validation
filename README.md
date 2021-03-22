@@ -20,6 +20,7 @@
   - [ip](#ip)
   - [ipv4](#ipv4)
   - [ipv6](#ipv6)
+  - [re (regex)](#repattern)  
   - [size](#sizevalue)
   - [numeric](#numeric)
   - [integer](#integer)
@@ -178,6 +179,13 @@ The field under validation must be an IPv4 address.
 
 The field under validation must be an IPv6 address.
 
+### re:pattern
+
+The field under validation must match the given regular expression.
+
+## *Note*
+**When using the re patterns, it may be necessary to specify rules in a list instead of using | delimiters, especially if the regular expression contains a | character.**
+
 ### size:value
 
 The field under validation must have a size matching the given value. 
@@ -255,7 +263,7 @@ from pyva import Validator
 
 def is_odd(attribute, value, fail):
     
-    if value % 2 != 0:
+    if value % 2 != 1:
         fail("{} must be odd ".format(attribute))
         
 data = {
@@ -267,6 +275,8 @@ rules = {
 }
 
 v = Validator(data, rules)
+
+print(v.passes())
 
 # or check if it fails
 if v.fails():

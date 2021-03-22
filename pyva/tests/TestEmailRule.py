@@ -19,7 +19,6 @@ class MyTestCase(unittest.TestCase):
             'firstname-lastname@example.com',
             'email@example.web',
             'email@subdomain.example.com',
-            'email@example.com (Joe Smith)',
             'email@[123.123.123.123]',
             '"email"@example.com',
         ]
@@ -61,6 +60,7 @@ class MyTestCase(unittest.TestCase):
             'email@123.123.123.123',
             'あいうえお@example.com',
             'email@-example.com',
+            'email@example.com (Joe Smith)',
 
         ]
 

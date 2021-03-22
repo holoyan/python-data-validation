@@ -14,7 +14,6 @@ valid_emails = [
     'firstname-lastname@example.com',
     'email@example.web',
     'email@subdomain.example.com',
-    'email@example.com (Joe Smith)',
     'email@[123.123.123.123]',
     '"email"@example.com',
 ]
@@ -56,7 +55,7 @@ invalid_emails = [
     'email@123.123.123.123',
     'あいうえお@example.com',
     'email@-example.com',
-
+    'email@example.com (Joe Smith)',
 ]
 
 for email in invalid_emails:
