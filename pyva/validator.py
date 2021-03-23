@@ -439,6 +439,9 @@ class Validator:
 
     def _parse_rules(self, rules: str):
 
+        if isinstance(rules, list):
+            return [rules[0], rules[1:]]
+
         parsed = rules.split(':', 1)
         rule = parsed.pop(0)
         if len(parsed) == 0:

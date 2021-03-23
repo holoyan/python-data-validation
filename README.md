@@ -36,6 +36,7 @@
   - [gte](#gteother_field)
   - [lt](#ltother_field)
   - [lte](#lteother_field)
+- [Retrieving data](#retrieving-data)
 - [Extending Validator](#extending-validator)
   - [Custom Validation using callback](#custom-validation-using-callback)
   - [Custom Validation using RuleContract](#custom-validation-using-rulecontract)
@@ -104,13 +105,22 @@ if v.fails():
     print(v.failed_rules)
 
 
-
 # You can use list of rules
 
 rules = {
         'user.age': ['required', 'min:18', 'max:100'],
 }
 v = Validator(data, rules)
+
+
+# event more, you can make rule params as a list
+rules = {
+      'user.age': [
+        'required',
+        ['min', 18], # first item of list must be rule, rest are params
+        ['max', 100] # 'max:100' this both are same
+      ],
+}
 
 ```
 
@@ -252,6 +262,35 @@ The field under validation must be less than the given field. The two fields mus
 ### lte:other_field
 
 The field under validation must be less than or equal to the given field. The two fields must be of the same type. 
+
+
+### Retrieving data
+
+To retrieve the validated input data call `validated()` method
+
+```python
+
+from pyva import Validator
+
+data = {
+    'user': {
+            'name': 'John',
+            'age': 28
+        }
+}
+
+rules = {
+    'user': 'dict',
+    'user.name': 'required|min:3',
+    'user.age': 'required|min:18|max:100',
+}
+
+validation = Validator(data, rules)
+if validation.passes():
+    print(validation.validated())  # get validated data
+
+```
+
 
 ## Extending Validator
 
