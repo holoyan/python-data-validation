@@ -59,6 +59,10 @@ class Validator:
                 del rule_copy[attribute]
         return rule_copy
 
+    def __require_parameter_count(self, count, params, rule):
+        if len(params) < count:
+            raise ValueError("Validation rule {} requires at least {} parameters.".format(rule, count))
+
     def _extract_wildcard_rules(self, attribute, rule):
         '''
 
@@ -109,6 +113,7 @@ class Validator:
         return True
 
     def _validate_required_if(self, attribute, value, *other_params):
+        self.__require_parameter_count(2, other_params, 'required_if')
 
         other_value = helpers.data_get(other_params[0], self.data)
         values = other_params[1:]
@@ -122,7 +127,7 @@ class Validator:
         return True
 
     def _validate_required_unless(self, attribute, value, *other_params):
-
+        self.__require_parameter_count(2, other_params, 'required_unless')
         other_value = helpers.data_get(other_params[0], self.data)
         values = other_params[1:]
 
@@ -176,24 +181,27 @@ class Validator:
                 return True
         return False
 
-    def _validate_size(self, attribute, value, size):
-        return self._get_size(attribute, value) == int(size)
+    def _validate_size(self, attribute, value, *size):
+        self.__require_parameter_count(1, size, 'size')
+        return self._get_size(attribute, value) == int(size[0])
 
     @helpers.boarders_to_int
     def _validate_between(self, attribute, value, left_board, right_board):
         return left_board <= self._get_size(attribute, value) <= right_board
 
     @helpers.boarders_to_int
-    def _validate_min(self, attribute, value, left_board):
-        return self._get_size(attribute, value) >= int(left_board)
+    def _validate_min(self, attribute, value, *left_board):
+        self.__require_parameter_count(1, left_board, 'min')
+        return self._get_size(attribute, value) >= left_board[0]
 
     @helpers.boarders_to_int
-    def _validate_max(self, attribute, value, right_board):
-        return self._get_size(attribute, value) <= right_board
+    def _validate_max(self, attribute, value, *right_board):
+        self.__require_parameter_count(1, right_board, 'max')
+        return self._get_size(attribute, value) <= right_board[0]
 
-    def _validate_gt(self, attribute, value, other_filed):
-
-        other_value = helpers.data_get(other_filed, self.data)
+    def _validate_gt(self, attribute, value, *other_filed):
+        self.__require_parameter_count(1, other_filed, 'gt')
+        other_value = helpers.data_get(other_filed[0], self.data)
 
         # if values are numeric cast and check
         if helpers.is_numeric(value) and helpers.is_numeric(other_value):
@@ -206,11 +214,11 @@ class Validator:
             return False
 
         # check sizes
-        return self._get_size(attribute, value) > self._get_size(other_filed, other_value)
+        return self._get_size(attribute, value) > self._get_size(other_filed[0], other_value)
 
-    def _validate_gte(self, attribute, value, other_filed):
-
-        other_value = helpers.data_get(other_filed, self.data)
+    def _validate_gte(self, attribute, value, *other_filed):
+        self.__require_parameter_count(1, other_filed, 'gte')
+        other_value = helpers.data_get(other_filed[0], self.data)
 
         # if values are numeric cast and check
         if helpers.is_numeric(value) and helpers.is_numeric(other_value):
@@ -223,11 +231,11 @@ class Validator:
             return False
 
         # check sizes
-        return self._get_size(attribute, value) >= self._get_size(other_filed, other_value)
+        return self._get_size(attribute, value) >= self._get_size(other_filed[0], other_value)
 
-    def _validate_lt(self, attribute, value, other_filed):
-
-        other_value = helpers.data_get(other_filed, self.data)
+    def _validate_lt(self, attribute, value, *other_filed):
+        self.__require_parameter_count(1, other_filed, 'lt')
+        other_value = helpers.data_get(other_filed[0], self.data)
 
         # if values are numeric cast and check
         if helpers.is_numeric(value) and helpers.is_numeric(other_value):
@@ -240,11 +248,11 @@ class Validator:
             return False
 
         # check sizes
-        return self._get_size(attribute, value) < self._get_size(other_filed, other_value)
+        return self._get_size(attribute, value) < self._get_size(other_filed[0], other_value)
 
-    def _validate_lte(self, attribute, value, other_filed):
-
-        other_value = helpers.data_get(other_filed, self.data)
+    def _validate_lte(self, attribute, value, *other_filed):
+        self.__require_parameter_count(1, other_filed, 'lte')
+        other_value = helpers.data_get(other_filed[0], self.data)
 
         # if values are numeric cast and check
         if helpers.is_numeric(value) and helpers.is_numeric(other_value):
@@ -257,7 +265,7 @@ class Validator:
             return False
 
         # check sizes
-        return self._get_size(attribute, value) <= self._get_size(other_filed, other_value)
+        return self._get_size(attribute, value) <= self._get_size(other_filed[0], other_value)
 
     def _validate_numeric(self, attribute, value):
         return helpers.is_numeric(value)
