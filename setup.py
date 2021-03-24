@@ -3,14 +3,12 @@ from distutils.core import setup
 setup(
     name='pyva',
     packages=['pyva'],
-    version='0.2',
+    version='0.3',
     license='MIT',
     description='Simple and flexible python data validation library',
-    long_description=open('README.md').read(),
     author='Artak',
     author_email='artaksafaryanc@gmail.com',
     url='https://github.com/holoyan/python-data-validation',
-    download_url='https://github.com/holoyan/python-data-validation/archive/0.2.tar.gz',
     keywords=['data', 'validation', 'validator', 'data validator'],
     classifiers=[
         'Development Status :: 3 - Alpha',
