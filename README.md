@@ -328,43 +328,42 @@ What if you want more powerful validation, well then check [Custom Validation us
 
 ### Custom Validation using RuleContract
 
-For this you need to import `RuleContract`
-
+For this you need to import `RuleContract`. 
+Your class must implement `passes()` method and return `True` or `False`
 
 ```python
 
 from pyva import RuleContract
 from pyva import Validator
 
-# you class must implement passes() method
+# your class must implement passes() method
 
-class IsOdd(RuleContract):
-    
-    # use this when you want to pass additional data
-    def __init__(self, some_data = None):
-        self.some_data = some_data
-        
+class EndsWith(RuleContract):
+
+    def __init__(self, end_string):
+        self.end_string = end_string
 
     def passes(self, attribute, value):
-        
-        if value % 2 == 0:
-            return True # return True means validation passed
-        
-        return False    
+        return value.endswith(self.end_string)
+
+    def message(self, attribute, value):
+        return "{} must end with '{}'".format(attribute, self.end_string)
 
 
 data = {
-    'length': 20
+    'company_name': 'Accme company'
 }
 
 rules = {
-    'length': ['required', IsOdd()] 
+    'company_name': [
+        'required',
+        'string',
+        EndsWith('company')
+    ]
 }
 
 v = Validator(data, rules)
-
-if v.passes():
-    # do something cool
+print(v.passes())
 
 ```
 
