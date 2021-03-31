@@ -9,7 +9,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 setup(
     name='pyva',
     packages=find_packages(),
-    version='0.4',
+    version='0.4.1',
     license='MIT',
     description='Simple and flexible python data validation library',
     long_description=long_description,
@@ -18,6 +18,9 @@ setup(
     author_email='artaksafaryanc@gmail.com',
     url='https://github.com/holoyan/python-data-validation',
     keywords=['data', 'validation', 'validator', 'data validator'],
+    install_requires=[  # I get to this in a second
+        'python-dateutil',
+    ],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
