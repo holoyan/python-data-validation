@@ -373,4 +373,4 @@ print(v.passes())
 
 ## License
 
-Licensed under the MIT  license.
+MIT  license.
